@@ -1,0 +1,37 @@
+.hydra
+.DS_Store
+*.class
+*.log
+
+# sbt specific
+.cache
+.history
+.lib/
+dist/*
+target/
+lib_managed/
+src_managed/
+project/boot/
+project/plugins/project/
+
+.mill/mill
+
+# Scala-IDE specific
+.scala_dependencies
+.worksheet
+.idea*
+*.iml
+
+.bloop
+.metals
+
+.ensime
+/.ensime_cache
+
+hydra*
+out
+.mill
+pipeline.yml
+*.jar
+*.zip
+gcp-credentials.json
