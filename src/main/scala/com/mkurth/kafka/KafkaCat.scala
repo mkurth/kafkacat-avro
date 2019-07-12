@@ -31,7 +31,9 @@ object KafkaCat extends App {
   import builder._
   val parser = OParser.sequence(
     programName("kafkacat-avro"),
-    head("v0.0.1"),
+    head(s"${BuildInfo.toString}"),
+    version("version").text("outputs the version"),
+    help("help").text("prints this help message"),
     opt[String]('t', "topic").required().action((s, conf) => conf.copy(topic = s)).valueName("<topic>").text("topic to cat in kafka"),
     opt[String]('s', "schema")
       .required()
@@ -64,7 +66,7 @@ object KafkaCat extends App {
       .optional()
       .action((l, conf) => conf.copy(messageLimit = l))
       .valueName("<limit>")
-      .text("limit number of messages to read")
+      .text("limit number of messages to read"),
   )
 
   OParser
