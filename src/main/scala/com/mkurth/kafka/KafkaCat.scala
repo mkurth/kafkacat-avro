@@ -70,7 +70,7 @@ object KafkaCat extends App {
   OParser
     .parse(parser, args, Config())
     .foreach(config => {
-      val avroSchemaFile = Source.fromFile(Paths.get(args(0)).toString)
+      val avroSchemaFile = Source.fromFile(Paths.get(config.avroSchemaFile).toString)
       val schema         = new Schema.Parser().parse(avroSchemaFile.getLines().mkString("\n"))
 
       KafkaMessageConsumer.read(KafkaConfig(config), (key, value) => {

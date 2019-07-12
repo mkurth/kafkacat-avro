@@ -58,7 +58,6 @@ object KafkaMessageConsumer {
     consumer.assign(consumerOffset.keys.toList.asJava)
     consumerOffset.foreach({
       case (partition, offset) =>
-        println(s"$partition: ${offset.offset()}")
         consumer.seek(partition, offset.offset())
     })
 
@@ -66,9 +65,13 @@ object KafkaMessageConsumer {
 
     while (readSoFar.get() < kafkaConfig.limit) {
       val records: ConsumerRecords[Key, Value] = consumer.poll(Duration.ofMinutes(5))
-      records.iterator().asScala.foreach(record => process(record.key(), record.value()))
+      records
+        .iterator()
+        .asScala
+        .foreach(record => {
+          if (readSoFar.getAndIncrement() < kafkaConfig.limit) process(record.key(), record.value())
+        })
       consumer.commitSync()
-      readSoFar.set(readSoFar.get() + records.count())
     }
   }
 }
