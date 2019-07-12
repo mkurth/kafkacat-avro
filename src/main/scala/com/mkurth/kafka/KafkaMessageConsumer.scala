@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import org.apache.kafka.clients.consumer.{ConsumerRecords, KafkaConsumer, OffsetAndTimestamp}
 import org.apache.kafka.common.TopicPartition
+import org.slf4j.{Logger, LoggerFactory}
 
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
@@ -30,6 +31,7 @@ object KafkaMessageConsumer {
 
   type Key   = Array[Byte]
   type Value = Array[Byte]
+  val logger: Logger = LoggerFactory.getLogger("")
 
   def read(kafkaConfig: KafkaConfig, process: (Key, Value) => Unit): Unit = {
     val config = new Properties()
@@ -56,22 +58,26 @@ object KafkaMessageConsumer {
       .asScala
 
     consumer.assign(consumerOffset.keys.toList.asJava)
-    consumerOffset.foreach({
-      case (partition, offset) =>
-        consumer.seek(partition, offset.offset())
-    })
+    val noOffsetsFound = consumerOffset.forall(_._2 != null)
+    if (noOffsetsFound)
+      logger.error("no offsets found for given date. try an earlier date.")
+    else {
+      consumerOffset.foreach({
+        case (partition, offset) =>
+          consumer.seek(partition, offset.offset())
+          val readSoFar = new AtomicInteger()
 
-    val readSoFar = new AtomicInteger()
-
-    while (readSoFar.get() < kafkaConfig.limit) {
-      val records: ConsumerRecords[Key, Value] = consumer.poll(Duration.ofMinutes(5))
-      records
-        .iterator()
-        .asScala
-        .foreach(record => {
-          if (readSoFar.getAndIncrement() < kafkaConfig.limit) process(record.key(), record.value())
-        })
-      consumer.commitSync()
+          while (readSoFar.get() < kafkaConfig.limit) {
+            val records: ConsumerRecords[Key, Value] = consumer.poll(Duration.ofMinutes(5))
+            records
+              .iterator()
+              .asScala
+              .foreach(record => {
+                if (readSoFar.getAndIncrement() < kafkaConfig.limit) process(record.key(), record.value())
+              })
+            consumer.commitSync()
+          }
+      })
     }
   }
 }
