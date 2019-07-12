@@ -1,11 +1,12 @@
-package com.mkurth.kafka
+package com.mkurth.kafka.adapter
 
+import com.mkurth.kafka.domain.{Config, Decoder}
 import org.apache.avro.Schema
 import org.apache.avro.file.SeekableByteArrayInput
 import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
 import org.apache.avro.io.DecoderFactory
 
-object AvroDecoder {
+class AvroDecoder(schema: Schema, config: Config) extends Decoder[Array[Byte]] {
 
   def deserialize(data: Array[Byte], schema: Schema): String = {
     val reader      = new GenericDatumReader[GenericRecord](schema)
@@ -14,4 +15,5 @@ object AvroDecoder {
     reader.read(null, decoder).toString
   }
 
+  def decode(a: Array[Byte]): String = deserialize(a, schema)
 }
