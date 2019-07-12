@@ -1,4 +1,4 @@
-package com.mkurth.kafka.domain
+package com.mkurth.kafka.adapter
 
 import java.time.{Instant, OffsetDateTime, ZoneId, ZonedDateTime}
 

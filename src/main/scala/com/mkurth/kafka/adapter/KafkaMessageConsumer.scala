@@ -5,7 +5,7 @@ import java.time.{Duration, OffsetDateTime}
 import java.util.Properties
 import java.util.concurrent.atomic.AtomicInteger
 
-import com.mkurth.kafka.domain.{Config, MessageConsumer}
+import com.mkurth.kafka.domain.MessageConsumer
 import org.apache.kafka.clients.consumer.{ConsumerRecords, KafkaConsumer, OffsetAndTimestamp}
 import org.apache.kafka.common.{PartitionInfo, TopicPartition}
 import org.slf4j.{Logger, LoggerFactory}
@@ -13,13 +13,13 @@ import org.slf4j.{Logger, LoggerFactory}
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
-object KafkaMessageConsumer extends MessageConsumer[Array[Byte], Array[Byte]] {
+class KafkaMessageConsumer(baseConfig: Config) extends MessageConsumer[Array[Byte], Array[Byte]] {
 
   type Key   = Array[Byte]
   type Value = Array[Byte]
   val logger: Logger = LoggerFactory.getLogger("")
 
-  def read(baseConfig: Config, process: (Key, Value) => Unit): Unit = {
+  def read(process: (Key, Value) => Unit): Unit = {
     val kafkaConfig    = KafkaConfig(baseConfig)
     val config         = createConfig(kafkaConfig)
     val consumer       = new KafkaConsumer[Key, Value](config)
@@ -44,6 +44,7 @@ object KafkaMessageConsumer extends MessageConsumer[Array[Byte], Array[Byte]] {
           })
         consumer.commitSync()
       }
+      consumer.close()
     }
   }
 

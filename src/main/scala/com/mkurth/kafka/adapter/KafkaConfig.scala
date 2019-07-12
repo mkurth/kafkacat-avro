@@ -2,8 +2,6 @@ package com.mkurth.kafka.adapter
 
 import java.time.OffsetDateTime
 
-import com.mkurth.kafka.domain.Config
-
 case class KafkaConfig(clientId: String, groupId: String, bootstrapServers: List[String], topic: String, fromDate: OffsetDateTime, limit: Long)
 
 object KafkaConfig {

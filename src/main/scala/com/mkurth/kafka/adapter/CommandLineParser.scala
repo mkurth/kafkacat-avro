@@ -4,7 +4,7 @@ import java.nio.file.Paths
 import java.time.OffsetDateTime
 
 import com.mkurth.kafka.BuildInfo
-import com.mkurth.kafka.domain.{ArgumentParser, Config}
+import com.mkurth.kafka.domain.ArgumentParser
 import scopt.{OParser, Read}
 
 import scala.io.Source

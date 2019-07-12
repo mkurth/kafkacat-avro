@@ -17,11 +17,11 @@ object KafkaCat extends App {
       val decoder        = new AvroDecoder(schema, config)
 
       val service = new Service[Array[Byte], Array[Byte]](
-        messageConsumer = KafkaMessageConsumer,
+        messageConsumer = new KafkaMessageConsumer(config),
         output          = SystemOutput,
         decoder         = decoder
       )
-      service.run(config)
+      service.run()
     case _ => SystemOutput.error("Invalid Config")
   }
 

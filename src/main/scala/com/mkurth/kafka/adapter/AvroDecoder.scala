@@ -1,6 +1,6 @@
 package com.mkurth.kafka.adapter
 
-import com.mkurth.kafka.domain.{Config, Decoder}
+import com.mkurth.kafka.domain.Decoder
 import org.apache.avro.Schema
 import org.apache.avro.file.SeekableByteArrayInput
 import org.apache.avro.generic.{GenericDatumReader, GenericRecord}
