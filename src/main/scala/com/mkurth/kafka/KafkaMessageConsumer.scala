@@ -36,8 +36,8 @@ object KafkaMessageConsumer {
     config.put("client.id", kafkaConfig.clientId)
     config.put("group.id", kafkaConfig.groupId)
     config.put("bootstrap.servers", kafkaConfig.bootstrapServers.mkString(","))
-    config.put("key.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
-    config.put("value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer");
+    config.put("key.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer")
+    config.put("value.deserializer", "org.apache.kafka.common.serialization.ByteArrayDeserializer")
     val consumer = new KafkaConsumer[Key, Value](config)
 
     val partitions = consumer.partitionsFor(kafkaConfig.topic).asScala.toList

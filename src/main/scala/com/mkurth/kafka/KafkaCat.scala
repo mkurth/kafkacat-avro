@@ -75,7 +75,7 @@ object KafkaCat extends App {
       val avroSchemaFile = Source.fromFile(Paths.get(config.avroSchemaFile).toString)
       val schema         = new Schema.Parser().parse(avroSchemaFile.getLines().mkString("\n"))
 
-      KafkaMessageConsumer.read(KafkaConfig(config), (key, value) => {
+      KafkaMessageConsumer.read(KafkaConfig(config), (_, value) => {
         val decoded = AvroDecoder.deserialize(value, schema)
         println(decoded)
       })

@@ -7,7 +7,7 @@ import org.apache.avro.io.DecoderFactory
 
 object AvroDecoder {
 
-  def deserialize(data: Array[Byte], schema: Schema) = {
+  def deserialize(data: Array[Byte], schema: Schema): String = {
     val reader      = new GenericDatumReader[GenericRecord](schema)
     val inputStream = new SeekableByteArrayInput(data)
     val decoder     = DecoderFactory.get.binaryDecoder(inputStream, null)
