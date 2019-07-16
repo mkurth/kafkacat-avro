@@ -8,7 +8,9 @@ libraryDependencies += "org.apache.avro"  % "avro"         % "1.9.0"
 libraryDependencies += "com.github.scopt" %% "scopt"       % "4.0.0-RC2"
 libraryDependencies += "org.slf4j"        % "slf4j-simple" % "1.7.26"
 
-buildInfoKeys    := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion)
-buildInfoPackage := "com.mkurth.kafka"
-
+buildInfoKeys          := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion)
+buildInfoPackage       := "com.mkurth.kafka"
+bashScriptExtraDefines += """set -- -- "$@""""
+dockerRepository       := Some("mcurse")
+dockerUpdateLatest     := true
 enablePlugins(JavaAppPackaging, BuildInfoPlugin)

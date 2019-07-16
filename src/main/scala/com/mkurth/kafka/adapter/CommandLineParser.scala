@@ -23,8 +23,8 @@ object CommandLineParser extends ArgumentParser {
   private val parser = OParser.sequence(
     programName("kafkacat-avro"),
     head(s"${BuildInfo.toString}"),
-    version("version").text("outputs the version"),
-    help("help").text("prints this help message"),
+    version('v', "version").text("outputs the version"),
+    help('h', "help").text("prints this help message"),
     opt[String]('t', "topic").required().action((s, conf) => conf.copy(topic = s)).valueName("<topic>").text("topic to cat in kafka"),
     opt[String]('s', "schema")
       .required()
@@ -48,11 +48,16 @@ object CommandLineParser extends ArgumentParser {
       .valueName("<bootstrap-server>")
       .unbounded()
       .text("kafka bootstrap servers. coma separated or by repeating this argument."),
-    opt[OffsetDateTime]('d', "from-date")
+    opt[OffsetDateTime]('f', "from-date")
       .optional()
       .action((d, conf) => conf.copy(fromDate = d))
       .valueName("<from-date>")
-      .text("ZonedDateTime from when to start parsing. format is: 2007-12-03T10:15:30+01:00"),
+      .text("OffsetDateTime from when to start parsing. format is: 2007-12-03T10:15:30+01:00"),
+    opt[Option[OffsetDateTime]]('u', "until-date")
+      .optional()
+      .action((d, conf) => conf.copy(untilDate = d))
+      .valueName("<until-date>")
+      .text("Optional OffsetDateTime until (inclusive) when to scan messages. format is: 2007-12-03T10:15:30+01:00"),
     opt[Long]('l', "limit-messages")
       .optional()
       .action((l, conf) => conf.copy(messageLimit = l))

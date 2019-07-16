@@ -2,7 +2,13 @@ package com.mkurth.kafka.adapter
 
 import java.time.OffsetDateTime
 
-case class KafkaConfig(clientId: String, groupId: String, bootstrapServers: List[String], topic: String, fromDate: OffsetDateTime, limit: Long)
+case class KafkaConfig(clientId: String,
+                       groupId: String,
+                       bootstrapServers: List[String],
+                       topic: String,
+                       fromDate: OffsetDateTime,
+                       untilDate: Option[OffsetDateTime],
+                       limit: Long)
 
 object KafkaConfig {
   def apply(config: Config): KafkaConfig = {
@@ -13,6 +19,7 @@ object KafkaConfig {
       bootstrapServers = bootstrapServers,
       topic            = topic,
       fromDate         = fromDate,
+      untilDate        = untilDate,
       limit            = messageLimit
     )
   }
