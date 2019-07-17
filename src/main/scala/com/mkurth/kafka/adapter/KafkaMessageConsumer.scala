@@ -3,13 +3,13 @@ package com.mkurth.kafka.adapter
 import java.lang
 import java.time.Duration
 import java.util.Properties
-import java.util.concurrent.atomic.AtomicInteger
 
 import com.mkurth.kafka.domain.MessageConsumer
-import org.apache.kafka.clients.consumer.{ConsumerRecord, ConsumerRecords, KafkaConsumer}
+import org.apache.kafka.clients.consumer.{ConsumerRecord, KafkaConsumer}
 import org.apache.kafka.common.{PartitionInfo, TopicPartition}
 import org.slf4j.{Logger, LoggerFactory}
 
+import scala.annotation.tailrec
 import scala.jdk.CollectionConverters._
 import scala.util.Try
 
@@ -35,23 +35,37 @@ class KafkaMessageConsumer(baseConfig: Config) extends MessageConsumer[Array[Byt
     else {
       initKafkaClient(kafkaConfig, consumer)
       seekToOffset(consumer, offsetRanges, kafkaConfig.topic)
-      val readSoFar   = new AtomicInteger()
-      var assignments = consumer.assignment().asScala.toList.map(_.partition())
-      while (limitNotReached(kafkaConfig, readSoFar) && assignments.nonEmpty) {
-        val records: ConsumerRecords[Key, Value] = consumer.poll(defaultTimeout)
-        records
-          .iterator()
-          .asScala
-          .foreach(record => {
-            assignments = pausePartitionsThatReachedTheEnd(latestOffsets, consumer, record, kafkaConfig.topic, assignments)
-            if (readSoFar.getAndIncrement() < kafkaConfig.limit && recordInRange(offsetRanges, record))
-              process(record.key(), record.value())
-          })
-        consumer.commitSync()
-      }
+      val assignments = consumer.assignment().asScala.toList.map(_.partition())
+      run(consumer, kafkaConfig, offsetRanges, process, 0, assignments)
       consumer.close()
     }
   }
+
+  @tailrec
+  private def run(consumer: KafkaConsumer[Key, Value],
+                  kafkaConfig: KafkaConfig,
+                  offsetRanges: Map[Int, Range],
+                  process: (Key, Value) => Unit,
+                  readSoFar: Int,
+                  assignments: List[Int]): Int =
+    if (!(limitNotReached(kafkaConfig, readSoFar) && assignments.nonEmpty)) {
+      readSoFar
+    } else {
+      val processed = consumer
+        .poll(defaultTimeout)
+        .iterator()
+        .asScala
+        .toList
+        .map(record => {
+          val assign = pausePartitionsThatReachedTheEnd(offsetRanges, consumer, record, kafkaConfig.topic, assignments)
+          if (readSoFar < kafkaConfig.limit && recordInRange(offsetRanges, record)) {
+            process(record.key(), record.value())
+            assign -> 1
+          } else assign -> 0
+        })
+      consumer.commitSync()
+      run(consumer, kafkaConfig, offsetRanges, process, readSoFar + processed.map(_._2).sum, processed.last._1)
+    }
 
   private def initKafkaClient(kafkaConfig: KafkaConfig, consumer: KafkaConsumer[Key, Value]) = {
     consumer.subscribe(List(kafkaConfig.topic).asJava)
@@ -72,16 +86,16 @@ class KafkaMessageConsumer(baseConfig: Config) extends MessageConsumer[Array[Byt
   private def recordInRange(offsetRanges: Map[Int, Range], record: ConsumerRecord[Key, Value]) =
     offsetRanges.get(record.partition()).exists(_.end >= record.offset())
 
-  private def limitNotReached(kafkaConfig: KafkaConfig, readSoFar: AtomicInteger) =
-    readSoFar.get() < kafkaConfig.limit
+  private def limitNotReached(kafkaConfig: KafkaConfig, readSoFar: Int) =
+    readSoFar < kafkaConfig.limit
 
-  private def pausePartitionsThatReachedTheEnd(maxTimestamp: Option[Map[Int, Long]],
+  private def pausePartitionsThatReachedTheEnd(offsetRanges: Map[Int, Range],
                                                consumer: KafkaConsumer[Key, Value],
                                                record: ConsumerRecord[Key, Value],
                                                topic: String,
                                                assignments: List[Int]) =
-    maxTimestamp
-      .flatMap(_.find(lastAllowedOffset => record.partition() == lastAllowedOffset._1 && record.offset() >= lastAllowedOffset._2))
+    offsetRanges
+      .find(lastAllowedOffset => record.partition() == lastAllowedOffset._1 && record.offset() >= lastAllowedOffset._2.end)
       .map(offset => {
         Try(consumer.pause(List(new TopicPartition(topic, offset._1)).asJava))
         assignments.filter(_ != offset._1)
