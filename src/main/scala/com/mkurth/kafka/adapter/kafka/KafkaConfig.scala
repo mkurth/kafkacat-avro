@@ -10,7 +10,7 @@ case class KafkaConfig(clientId: String,
                        topic: String,
                        fromDate: OffsetDateTime,
                        untilDate: Option[OffsetDateTime],
-                       limit: Long)
+                       limit: Int)
 
 object KafkaConfig {
   def apply(config: Config): KafkaConfig = {

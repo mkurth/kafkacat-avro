@@ -108,26 +108,34 @@ object KafkaMessageConsumer {
     if (!(readSoFar < kafkaConfig.limit && activePartitions.nonEmpty)) {
       readSoFar
     } else {
-      val processed = poll()
+      val toProcess = poll()
         .iterator()
         .asScala
         .toList
         .map(record => {
           val assign = pausePartitionsThatReachedTheEnd(offsetRanges, pause, record, kafkaConfig.topic, activePartitions)
-          if (readSoFar < kafkaConfig.limit && OffsetCalculator.recordInRange(offsetRanges, record)) {
-            process(record.key(), record.value())
-            assign -> 1
-          } else assign -> 0
+          if (OffsetCalculator.recordInRange(offsetRanges, record)) {
+            (assign, Some(() => process(record.key(), record.value())))
+          } else (assign, None)
         })
+
+      val toProcessLimited          = toProcess.filter(_._2.isDefined).take(kafkaConfig.limit - readSoFar)
+      val processedSoFar            = readSoFar + toProcessLimited.length
+      val remainingActivePartitions = toProcess.map(_._1).fold(activePartitions)(_ intersect _)
+
+      toProcessLimited.foreach(_._2.get.apply())
       commit()
-      readFromKafka(poll,
-                    commit,
-                    pause,
-                    kafkaConfig,
-                    offsetRanges,
-                    process,
-                    readSoFar + processed.map(_._2).sum,
-                    Try(processed.last._1).getOrElse(List.empty))
+
+      readFromKafka(
+        poll             = poll,
+        commit           = commit,
+        pause            = pause,
+        kafkaConfig      = kafkaConfig,
+        offsetRanges     = offsetRanges,
+        process          = process,
+        readSoFar        = processedSoFar,
+        activePartitions = remainingActivePartitions
+      )
     }
 
   private def pausePartitionsThatReachedTheEnd[Key, Value](offsetRanges: Map[Int, Range],

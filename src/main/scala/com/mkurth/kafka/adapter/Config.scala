@@ -10,5 +10,5 @@ case class Config(
     bootstrapServers: List[String]    = List("localhost:9092"),
     fromDate: OffsetDateTime          = ZonedDateTime.ofInstant(Instant.EPOCH, ZoneId.systemDefault()).toOffsetDateTime,
     untilDate: Option[OffsetDateTime] = None,
-    messageLimit: Long                = Long.MaxValue
+    messageLimit: Int                 = Int.MaxValue
 )

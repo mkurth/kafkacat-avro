@@ -58,7 +58,7 @@ object CommandLineParser extends ArgumentParser {
       .action((d, conf) => conf.copy(untilDate = d))
       .valueName("<until-date>")
       .text("Optional OffsetDateTime until (inclusive) when to scan messages. format is: 2007-12-03T10:15:30+01:00"),
-    opt[Long]('l', "limit-messages")
+    opt[Int]('l', "limit-messages")
       .optional()
       .action((l, conf) => conf.copy(messageLimit = l))
       .valueName("<limit>")
