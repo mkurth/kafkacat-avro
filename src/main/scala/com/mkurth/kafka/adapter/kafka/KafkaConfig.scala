@@ -1,6 +1,8 @@
-package com.mkurth.kafka.adapter
+package com.mkurth.kafka.adapter.kafka
 
 import java.time.OffsetDateTime
+
+import com.mkurth.kafka.adapter.Config
 
 case class KafkaConfig(clientId: String,
                        groupId: String,

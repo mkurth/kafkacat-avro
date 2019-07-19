@@ -2,7 +2,8 @@ package com.mkurth.kafka
 
 import java.nio.file.Paths
 
-import com.mkurth.kafka.adapter.{AvroDecoder, CommandLineParser, KafkaMessageConsumer, SystemOutput}
+import com.mkurth.kafka.adapter.kafka.KafkaMessageConsumer
+import com.mkurth.kafka.adapter.{AvroDecoder, CommandLineParser, SystemOutput}
 import com.mkurth.kafka.domain.Service
 import org.apache.avro.Schema
 
